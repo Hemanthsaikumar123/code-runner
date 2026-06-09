@@ -16,6 +16,8 @@ services:
 
     depends_on:
       - postgres
+      - redis
+      - rabbitmq
 
   postgres:
     image: postgres:16
@@ -37,6 +39,31 @@ services:
 
     ports:
       - "6379:6379"
+  
+  rabbitmq:
+    image: rabbitmq:3-management
+    container_name: rabbitmq
+
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+  
+  worker:
+    build: .
+    container_name: worker
+
+    environment:
+      DB_HOST: ${DB_HOST}
+      POSTGRES_PORT: ${POSTGRES_PORT}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
+
+    command: node worker.js
+
+    depends_on:
+      - postgres
+      - rabbitmq
 
 volumes:
   postgres-data:

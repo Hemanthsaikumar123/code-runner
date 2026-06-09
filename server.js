@@ -2,6 +2,9 @@ require("dotenv").config();
 const express = require("express");
 const { Pool } = require("pg");
 const { createClient } = require("redis");
+const { connectRabbitMQ } = require("./rabbitmq");
+const { getChannel } = require("./rabbitmq");
+
 const app = express();
 app.use(express.json());
 
@@ -18,11 +21,14 @@ async function startServer() {
   try {
     await redisClient.connect();
 
+    await connectRabbitMQ();
+
     app.listen(3000, () => {
       console.log("Server running on port 3000");
     });
+
   } catch (err) {
-    console.error("Startup Error:", err);
+    console.error(err);
   }
 }
 
@@ -47,23 +53,39 @@ app.post("/submission", async (req, res) => {
 
     const result = await pool.query(
       `
-      INSERT INTO submissions(language, code)
-      VALUES($1, $2)
+      INSERT INTO submissions(language, code, status)
+      VALUES($1, $2, 'QUEUED')
       RETURNING *
       `,
       [language, code]
     );
 
-    res.status(201).json(result.rows[0]);
+    const submission = result.rows[0];
+
+    const channel = getChannel();
+
+    channel.sendToQueue(
+      "submissions",
+      Buffer.from(
+        JSON.stringify({
+          submissionId: submission.id
+        })
+      )
+    );
+
+    res.status(201).json({
+      message: "Submission queued successfully",
+      submission
+    });
 
   } catch (err) {
     console.error(err);
+
     res.status(500).json({
       error: err.message
     });
   }
 });
-
 app.get("/submission/:id", async (req, res) => {
   try {
     const { id } = req.params;
@@ -108,5 +130,27 @@ app.get("/submission/:id", async (req, res) => {
       error: err.message
     });
   }
+});
+
+
+
+app.post("/queue", async (req, res) => {
+
+  const channel = getChannel();
+
+  const message = {
+    language: req.body.language,
+    code: req.body.code
+  };
+
+  channel.sendToQueue(
+    "submissions",
+    Buffer.from(JSON.stringify(message))
+  );
+
+  res.json({
+    message: "Submission queued"
+  });
+
 });
 
