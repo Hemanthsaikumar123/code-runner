@@ -19,13 +19,16 @@ redisClient.on("error", (err) => {
 
 async function startServer() {
   try {
-    await redisClient.connect();
-
-    await connectRabbitMQ();
 
     app.listen(3000, () => {
       console.log("Server running on port 3000");
     });
+    
+    await redisClient.connect();
+
+    await connectRabbitMQ();
+
+
 
   } catch (err) {
     console.error(err);

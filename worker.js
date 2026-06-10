@@ -52,9 +52,16 @@ async function startWorker() {
       await connection.createChannel();
 
     await channel.assertQueue("submissions");
+    const workerId =
+        Math.random()
+          .toString(36)
+          .substring(2, 8);
 
-    console.log("Worker waiting for messages...");
+    // console.log("Worker waiting for messages...");
 
+    console.log(
+              `Worker ${workerId} started`
+            );
     channel.consume("submissions", async (msg) => {
 
       if (!msg) return;
@@ -67,9 +74,12 @@ async function startWorker() {
         const submissionId =
           data.submissionId;
 
+        // console.log(
+        //   `Processing submission ${submissionId}`
+        // );
         console.log(
-          `Processing submission ${submissionId}`
-        );
+        `Worker ${workerId} processing submission ${submissionId}`
+      );
 
         await pool.query(
           `

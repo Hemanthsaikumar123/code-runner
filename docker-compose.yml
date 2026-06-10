@@ -50,7 +50,7 @@ services:
   
   worker:
     build: .
-    container_name: worker
+    # container_name: worker
 
     environment:
       DB_HOST: ${DB_HOST}
