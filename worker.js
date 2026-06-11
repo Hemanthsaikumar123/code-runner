@@ -140,15 +140,18 @@ async function startWorker() {
           );
 
           const { stdout, stderr } =
-            await execPromise(
-                `docker run --rm \
-                -v ${process.env.EXECUTION_VOLUME}:/sandbox \
-                python:3.12-alpine \
-                python ${filename}`,
-              {
-                timeout: 5000
-              }
-            );
+          await execPromise(
+                      `docker run --rm \
+                      --memory=128m \
+                      --cpus=0.5 \
+                      --network=none \
+                      -v ${process.env.EXECUTION_VOLUME}:/sandbox \
+                      python:3.12-alpine \
+                      python ${filename}`,
+                      {
+                        timeout: 5000
+                      }
+                    );
 
 
           output = stdout || stderr;
