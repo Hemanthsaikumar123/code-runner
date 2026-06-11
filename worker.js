@@ -109,7 +109,26 @@ async function startWorker() {
         //   submission.code
         // );
 
-        const filename = `/sandbox/submission-${submissionId}.py`;
+        // const filename = `/sandbox/submission-${submissionId}.py`;
+        let extension;
+
+        switch (submission.language) {
+          case "python":
+            extension = "py";
+            break;
+
+          case "javascript":
+            extension = "js";
+            break;
+
+          default:
+            throw new Error(
+              "Unsupported language"
+            );
+        }
+
+        const filename =
+          `/sandbox/submission-${submissionId}.${extension}`;
 
         await fs.writeFile(
                 filename,
@@ -120,7 +139,7 @@ async function startWorker() {
 
         const files = await fs.readdir("/sandbox");
 
-        console.log("Sandbox files:", files);
+        // console.log("Sandbox files:", files);
 
         let output = "";
 
@@ -134,24 +153,56 @@ async function startWorker() {
           //     }
           //   );
 
-          console.log(
-            "Running sandbox for:",
-            filename
-          );
+          // console.log(
+          //   "Running sandbox for:",
+          //   filename
+          // );
+
+          let image;
+          let command;
+
+          switch (submission.language) {
+
+            case "python":
+
+              image =
+                "python:3.12-alpine";
+
+              command =
+                `python ${filename}`;
+
+              break;
+
+            case "javascript":
+
+              image =
+                "node:22-alpine";
+
+              command =
+                `node ${filename}`;
+
+              break;
+
+            default:
+
+              throw new Error(
+                "Unsupported language"
+              );
+}
 
           const { stdout, stderr } =
-          await execPromise(
-                      `docker run --rm \
-                      --memory=128m \
-                      --cpus=0.5 \
-                      --network=none \
-                      -v ${process.env.EXECUTION_VOLUME}:/sandbox \
-                      python:3.12-alpine \
-                      python ${filename}`,
-                      {
-                        timeout: 5000
-                      }
-                    );
+            await execPromise(
+              `docker run --rm \
+              --memory=128m \
+              --cpus=0.5 \
+              --network=none \
+              -v ${process.env.EXECUTION_VOLUME}:/sandbox \
+              ${image} \
+              ${command}`,
+              {
+                timeout: 5000
+              }
+            );
 
 
           output = stdout || stderr;
