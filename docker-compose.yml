@@ -58,6 +58,11 @@ services:
       POSTGRES_USER: ${POSTGRES_USER}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
       POSTGRES_DB: ${POSTGRES_DB}
+      EXECUTION_VOLUME: ${EXECUTION_VOLUME}
+      
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - execution-files:/sandbox
 
     command: node worker.js
 
@@ -67,3 +72,4 @@ services:
 
 volumes:
   postgres-data:
+  execution-files:

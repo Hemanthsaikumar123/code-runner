@@ -101,25 +101,55 @@ async function startWorker() {
 
         const submission = result.rows[0];
 
-        const filename =
-          `submission-${submissionId}.py`;
+        // const filename =
+        //   `submission-${submissionId}.py`;
+
+        // await fs.writeFile(
+        //   filename,
+        //   submission.code
+        // );
+
+        const filename = `/sandbox/submission-${submissionId}.py`;
 
         await fs.writeFile(
-          filename,
-          submission.code
-        );
+                filename,
+                submission.code
+              );
+        
+        console.log("Created:", filename);
+
+        const files = await fs.readdir("/sandbox");
+
+        console.log("Sandbox files:", files);
 
         let output = "";
 
         try {
 
+          // const { stdout, stderr } =
+          //   await execPromise(
+          //     `python3 ${filename}`,
+          //     {
+          //       timeout: 5000
+          //     }
+          //   );
+
+          console.log(
+            "Running sandbox for:",
+            filename
+          );
+
           const { stdout, stderr } =
             await execPromise(
-              `python3 ${filename}`,
+                `docker run --rm \
+                -v ${process.env.EXECUTION_VOLUME}:/sandbox \
+                python:3.12-alpine \
+                python ${filename}`,
               {
                 timeout: 5000
               }
             );
+
 
           output = stdout || stderr;
 

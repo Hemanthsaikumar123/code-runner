@@ -1,6 +1,8 @@
 FROM node:22-alpine
 
-RUN apk add --no-cache python3
+RUN apk add --no-cache \
+    python3 \
+    docker-cli
 
 WORKDIR /app
 

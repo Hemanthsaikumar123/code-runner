@@ -67,6 +67,12 @@ app.post("/submission", async (req, res) => {
 
     const channel = getChannel();
 
+    if (!channel) {
+        return res.status(503).json({
+          error: "RabbitMQ not connected yet"
+        });
+      }
+
     channel.sendToQueue(
       "submissions",
       Buffer.from(
