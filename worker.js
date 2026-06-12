@@ -113,6 +113,7 @@ async function startWorker() {
         let extension;
 
         switch (submission.language) {
+
           case "python":
             extension = "py";
             break;
@@ -121,14 +122,20 @@ async function startWorker() {
             extension = "js";
             break;
 
-          default:
-            throw new Error(
-              "Unsupported language"
-            );
-        }
+          case "java":
+            extension = "java";
+            break;
 
-        const filename =
-          `/sandbox/submission-${submissionId}.${extension}`;
+          default:
+            throw new Error("Unsupported language");
+        }
+        let filename;
+        if(submission.language === "java") {
+          filename = `/sandbox/Main.java`;
+        }
+        else{
+          filename = `/sandbox/submission-${submissionId}.${extension}`;
+        }
 
         await fs.writeFile(
                 filename,
@@ -180,6 +187,15 @@ async function startWorker() {
 
               command =
                 `node ${filename}`;
+
+              break;
+            
+            case "java":
+
+              image = "eclipse-temurin:21-jdk";
+
+              command =
+                `sh -c "javac ${filename} && java -cp /sandbox Main"`;
 
               break;
 
